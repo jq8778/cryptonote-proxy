@@ -70,8 +70,10 @@ function attachPool(localsocket,coin,firstConn,setWorker,user,pass) {
 	remotesocket.on('data', function(data) {
 
 		if(data)logger.debug('received from pool ('+coin+'):'+data.toString().trim()+' ('+pass+')');
-
-		var request = JSON.parse(data);
+		var datas = data.toString().trim().match(/(\{.+?\})(?={|$)/g);
+		for (var x in datas)
+		{
+		var request = JSON.parse(datas[x]);
 		
 
 		if(request.result && request.result.job)
@@ -114,10 +116,11 @@ function attachPool(localsocket,coin,firstConn,setWorker,user,pass) {
 		{
 			logger.info(request.method+' (?) from pool '+coin+' ('+pass+')');
 		}else{
-			logger.info(data+' (else) from '+coin+' '+JSON.stringify(request)+' ('+pass+')');
+			logger.info(datas[x]+' (else) from '+coin+' '+JSON.stringify(request)+' ('+pass+')');
 		}
 			
 		localsocket.write(JSON.stringify(request)+"\n");
+	}
 	});
 	
 	remotesocket.on('close', function(had_error,text) {
@@ -233,7 +236,10 @@ const workerserver = net.createServer(function (localsocket) {
 	localsocket.on('data', function (data) {
 		
 		if(data) logger.debug('received from woker ('+localsocket.remoteAddress+':'+localsocket.remotePort+'):'+data.toString().trim());
-		var request = JSON.parse(data);
+		var datas = data.toString().trim().match(/(\{.+?\})(?={|$)/g);
+		for(x in datas)
+		{
+		var request = JSON.parse(datas[x]);
 		
 		if(request.method === 'login')
 		{
@@ -249,6 +255,7 @@ const workerserver = net.createServer(function (localsocket) {
 			{
 				responderCB('push',request);
 			}
+		}
 		}
 	});
 	
